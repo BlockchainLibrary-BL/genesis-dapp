@@ -67,3 +67,4 @@ functions/
 # ========================
 # Storybook
 storybook-static/
+"node_modules/" 
