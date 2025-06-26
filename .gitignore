@@ -1,4 +1,6 @@
-# ========================
+# Ignore node dependecies
+node_modules/
+ ========================
 # Next.js & DApp Essentials
 # ========================
 
