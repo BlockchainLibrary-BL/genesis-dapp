@@ -24,7 +24,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "wagmi": "^2.0.0",
-    "viem": "^2.0.0"
+    "viem": "^2.0.0",
+    "cssnano":"^7.0.0"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.0.0",
