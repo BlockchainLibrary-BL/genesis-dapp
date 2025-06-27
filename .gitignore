@@ -1,78 +1,74 @@
-# Ignore node dependecies
-node_modules/
-# Nuclear gitignore
-node_modules/
-.next/
-*.log
-.env*
- ========================
-# Next.js & DApp Essentials
 # ========================
-
-# Dependencies
+# Node & Dependencies
+# ========================
 node_modules/
 .pnpm/
 .pnp.cjs
 
-# Next.js
+# ========================
+# Next.js & DApp Essentials
+# ========================
 .next/
 out/
+dist/
 .next/cache/
 
-# Build artifacts
-dist/
-*.log
-
-# Environment
-.env*.local
+# ========================
+# Environment Variables
+# ========================
 .env
+.env.local
 .env.production
 .env.development
+.env*.local
 
-# Debug
+# ========================
+# Logs & Debug
+# ========================
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# IDE
+# ========================
+# IDE & Editor
+# ========================
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# System
+# ========================
+# System Files
+# ========================
 .DS_Store
 Thumbs.db
 desktop.ini
 
+# ========================
 # Testing
+# ========================
 coverage/
 .nyc_output/
 jest.config.js
 
 # ========================
-# Wallet & Web3 Specific
+# Wallet & Web3
 # ========================
-# WalletConnect
 .walletconnect/
-
-# Hardhat/Ganache
 artifacts/
 cache/
 typechain/
 
 # ========================
-# Netlify Specific
+# Netlify
 # ========================
 .netlify/
 functions/
 .netlify/functions/
 
 # ========================
-# Optional
+# Storybook (Optional)
 # ========================
-# Storybook
 storybook-static/
-"node_modules/" 
-"node_modules/" 
