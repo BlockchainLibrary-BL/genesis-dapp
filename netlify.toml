@@ -12,18 +12,17 @@
 [context.deploy-preview.environment]
   NEXT_PUBLIC_ENV = "staging"
 
-# Next.js specific optimizations
-[plugins]
-  [[plugins.inputs]]
-    package = "@netlify/plugin-nextjs"
+# Corrected plugin block
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
-# Redirects for SPA (Single Page Application)
+# Redirects for SPA (Optional)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Edge Functions (optional)
-[[edge_functions]]
-  path = "/api/*"
-  function = "api"
+# Optional: Edge Functions – Comment out if not used
+# [[edge_functions]]
+#   path = "/api/*"
+#   function = "api"
