@@ -1,5 +1,10 @@
 # Ignore node dependecies
 node_modules/
+# Nuclear gitignore
+node_modules/
+.next/
+*.log
+.env*
  ========================
 # Next.js & DApp Essentials
 # ========================
