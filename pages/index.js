@@ -1,11 +1,18 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount, useChainId, useSwitchChain, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import {
+  useAccount,
+  useChainId,
+  useSwitchChain,
+  useReadContract,
+  useWriteContract,
+  useWaitForTransactionReceipt
+} from 'wagmi';
 import { polygon } from 'wagmi/chains';
 import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-// Move to: pages/components/ClientOnly.jsx
-import ClientOnly from './components/ClientOnly'
-// Using environment variables
+import ClientOnly from './components/ClientOnly';
+import { ethers } from 'ethers';
+
 const GENESIS_BADGE_CONTRACT = {
   address: process.env.NEXT_PUBLIC_GENESIS_BADGE_CONTRACT || '0x18cd3974357ffC524E4EE2D3e08B06eD3E0B7E1C',
   abi: [
@@ -59,41 +66,55 @@ const GENESIS_BADGE_CONTRACT = {
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  const [message, setMessage] = useState('');
+  const [supporterData, setSupporterData] = useState(null);
+  const [devOverride, setDevOverride] = useState(false); // Temporary debug override
+
   const { address, isConnected, chain } = useAccount();
   const { switchChain } = useSwitchChain();
   const currentChainId = useChainId();
-  const [message, setMessage] = useState('');
-  const [supporterData, setSupporterData] = useState(null);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Contract reads
+  // Enhanced contract reads with auto-refresh
   const { data: badgeBalance, refetch: refetchBalance } = useReadContract({
-    ...GENESIS_BADGE_CONTRACT,
+    address: GENESIS_BADGE_CONTRACT.address,
+    abi: GENESIS_BADGE_CONTRACT.abi,
     functionName: 'balanceOf',
     args: [address],
-    query: { enabled: isConnected && mounted }
+    chainId: polygon.id,
+    query: { 
+      enabled: !!address,
+      refetchInterval: 10000 
+    }
   });
 
-  const { data: isMintingOpen } = useReadContract({
-    ...GENESIS_BADGE_CONTRACT,
-    functionName: 'mintingOpen'
+  const { data: isMintingOpen, refetch: refetchMintStatus } = useReadContract({
+    address: GENESIS_BADGE_CONTRACT.address,
+    abi: GENESIS_BADGE_CONTRACT.abi,
+    functionName: 'mintingOpen',
+    chainId: polygon.id,
+    query: {
+      enabled: true,
+      refetchInterval: 15000,
+      staleTime: 0
+    }
   });
 
   const { data: mintPrice } = useReadContract({
-    ...GENESIS_BADGE_CONTRACT,
-    functionName: 'MINT_PRICE'
+    address: GENESIS_BADGE_CONTRACT.address,
+    abi: GENESIS_BADGE_CONTRACT.abi,
+    functionName: 'MINT_PRICE',
+    chainId: polygon.id
   });
 
   const { data: totalMinted } = useReadContract({
-    ...GENESIS_BADGE_CONTRACT,
-    functionName: 'totalMinted'
+    address: GENESIS_BADGE_CONTRACT.address,
+    abi: GENESIS_BADGE_CONTRACT.abi,
+    functionName: 'totalMinted',
+    chainId: polygon.id,
+    query: { refetchInterval: 10000 }
   });
 
-  // Contract writes
-  const { 
+  const {
     data: hash,
     writeContract: mint,
     isPending: isMintLoading,
@@ -101,12 +122,26 @@ export default function Home() {
     reset: resetMint
   } = useWriteContract();
 
-  // Transaction status
-  const { isLoading: isTxLoading } = useWaitForTransactionReceipt({
-    hash,
-  });
+  const { isLoading: isTxLoading } = useWaitForTransactionReceipt({ hash });
 
-  // Handle mint
+  // Verify contract state directly
+  const verifyContractState = async () => {
+    try {
+      const provider = new ethers.JsonRpcProvider('https://polygon-rpc.com');
+      const contract = new ethers.Contract(
+        GENESIS_BADGE_CONTRACT.address,
+        GENESIS_BADGE_CONTRACT.abi,
+        provider
+      );
+      const status = await contract.mintingOpen();
+      console.log('Direct contract read - mintingOpen:', status);
+      return status;
+    } catch (error) {
+      console.error('Contract verification failed:', error);
+      return false;
+    }
+  };
+
   const handleMint = useCallback(async () => {
     if (!isConnected) {
       toast.error('Wallet not connected');
@@ -126,10 +161,12 @@ export default function Home() {
 
     try {
       mint({
-        ...GENESIS_BADGE_CONTRACT,
+        address: GENESIS_BADGE_CONTRACT.address,
+        abi: GENESIS_BADGE_CONTRACT.abi,
         functionName: 'mint',
         args: [message],
-        value: mintPrice
+        value: mintPrice,
+        chainId: polygon.id
       });
       toast.success('Transaction submitted...');
     } catch (error) {
@@ -137,37 +174,69 @@ export default function Home() {
     }
   }, [isConnected, chain, switchChain, mint, message, mintPrice]);
 
-  // Handle transaction success
+  useEffect(() => {
+    setMounted(true);
+    verifyContractState(); // Initial verification
+  }, []);
+
   useEffect(() => {
     if (hash && !isTxLoading) {
-      toast.success(
-        `🎉 Badge minted successfully!`,
-        { duration: 10000 }
-      );
+      toast.success('🎉 Badge minted successfully!', { duration: 8000 });
       refetchBalance();
+      refetchMintStatus();
     }
   }, [hash, isTxLoading]);
 
-  if (!mounted) return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-    </div>
-  );
+  useEffect(() => {
+    if (mintError) {
+      toast.error(`Mint error: ${mintError.shortMessage || mintError.message}`);
+    }
+  }, [mintError]);
+
+  if (!mounted) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <ClientOnly>
       <div className="max-w-3xl mx-auto p-8">
-        <h1 className="text-3xl font-bold text-center mb-8">
-          🌱 Genesis Badge
-        </h1>
+        <h1 className="text-3xl font-bold text-center mb-8">🌱 Genesis Badge</h1>
+
+        {/* Debug Panel (Development Only) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-red-900 text-white p-4 mb-4 rounded-lg">
+            <h3 className="font-bold">Developer Mode</h3>
+            <p>Contract: {GENESIS_BADGE_CONTRACT.address}</p>
+            <p>Mint Status: {isMintingOpen?.toString()} {devOverride && '(OVERRIDE ACTIVE)'}</p>
+            <div className="flex gap-2 mt-2">
+              <button 
+                onClick={() => {
+                  refetchMintStatus();
+                  verifyContractState();
+                }}
+                className="bg-blue-500 px-3 py-1 rounded"
+              >
+                Refresh Status
+              </button>
+              <button
+                onClick={() => setDevOverride(!devOverride)}
+                className="bg-yellow-500 px-3 py-1 rounded"
+              >
+                {devOverride ? 'Disable Override' : 'Force Mint Open'}
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-xl shadow-md">
           {!isConnected ? (
             <div className="text-center">
               <h2 className="text-2xl mb-2">Connect Your Wallet</h2>
-              <p className="mb-6">
-                To mint your Genesis Badge, please connect your wallet
-              </p>
+              <p className="mb-6">To mint your Genesis Badge, please connect your wallet</p>
               <ConnectButton />
             </div>
           ) : badgeBalance && badgeBalance > 0 ? (
@@ -181,14 +250,12 @@ export default function Home() {
                   )}
                 </div>
               )}
-              <p className="mt-4">
-                Total Minted: {totalMinted?.toString() || '...'} / 250,000
-              </p>
+              <p className="mt-4">Total Minted: {totalMinted?.toString() || '...'} / 250,000</p>
             </div>
           ) : (
             <div>
               <h2 className="text-2xl text-center mb-4">Mint Your Genesis Badge</h2>
-              
+
               {currentChainId !== polygon.id ? (
                 <button
                   onClick={() => switchChain({ chainId: polygon.id })}
@@ -199,9 +266,7 @@ export default function Home() {
               ) : (
                 <>
                   <div className="mb-4">
-                    <label className="block mb-2">
-                      Optional Message (max 100 chars)
-                    </label>
+                    <label className="block mb-2">Optional Message (max 100 chars)</label>
                     <textarea
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
@@ -213,15 +278,15 @@ export default function Home() {
 
                   <button
                     onClick={handleMint}
-                    disabled={!isMintingOpen || isMintLoading || isTxLoading}
+                    disabled={(!isMintingOpen && !devOverride) || isMintLoading || isTxLoading}
                     className={`w-full py-3 rounded-lg font-bold text-white ${
-                      !isMintingOpen ? 'bg-gray-400 cursor-not-allowed' : 
+                      (!isMintingOpen && !devOverride) ? 'bg-gray-400 cursor-not-allowed' :
                       isMintLoading || isTxLoading ? 'bg-gray-600' : 'bg-indigo-600 hover:bg-indigo-700'
                     }`}
                   >
-                    {!isMintingOpen ? 'Minting Closed' :
+                    {(!isMintingOpen && !devOverride) ? 'Minting Closed' :
                      isMintLoading || isTxLoading ? 'Processing...' : 
-                     `Mint for ${mintPrice ? (Number(mintPrice) / 1e18).toString() + ' MATIC' : '...'}`
+                     `Mint for ${mintPrice ? (Number(mintPrice) / 1e18).toFixed(2) + ' MATIC' : '...'}`
                     }
                   </button>
 
