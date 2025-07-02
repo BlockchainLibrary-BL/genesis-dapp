@@ -2,7 +2,8 @@
 import '../styles/globals.css'
 import { Inter } from 'next/font/google'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { WagmiProvider, createConfig, http } from 'wagmi'
+import { WagmiProvider } from 'wagmi'
+import { createConfig, http } from 'wagmi'
 import { polygon } from 'wagmi/chains'
 import { RainbowKitProvider, darkTheme, getDefaultConfig } from '@rainbow-me/rainbowkit'
 import '@rainbow-me/rainbowkit/styles.css'
@@ -20,8 +21,8 @@ const config = createConfig(
   getDefaultConfig({
     appName: 'Genesis Badge',
     projectId: projectId,
-    chains: [polygon], // Removed the type assertion
-    ssr: true, // Enable server-side rendering
+    chains: [polygon],
+    ssr: true,
     transports: {
       [polygon.id]: http(
         process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_API_KEY
