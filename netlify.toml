@@ -1,28 +1,6 @@
 [build]
-  command = "npm run build"
+  command = "npm install && npm run build"
   publish = ".next"
 
 [build.environment]
-  NODE_VERSION = "20"
-  NEXT_PUBLIC_ANALYTICS_ID = "YOUR_ID"
-
-[context.production.environment]
-  NEXT_PUBLIC_ENV = "production"
-
-[context.deploy-preview.environment]
-  NEXT_PUBLIC_ENV = "staging"
-
-# Corrected plugin block
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-
-# Redirects for SPA (Optional)
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-# Optional: Edge Functions – Comment out if not used
-# [[edge_functions]]
-#   path = "/api/*"
-#   function = "api"
+  NODE_VERSION = "18"
