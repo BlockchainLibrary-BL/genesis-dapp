@@ -19,15 +19,16 @@
     "ci": "npm run lint && npm run build && npm run test"
   },
   "dependencies": {
-    "@rainbow-me/rainbowkit": "^2.0.0",
+    "@rainbow-me/rainbowkit": "^2.2.8",
+    "@tanstack/react-query": "^5.81.5",
     "cssnano": "^7.0.0",
     "ethers": "^6.14.4",
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
-    "viem": "^2.0.0",
-    "wagmi": "^2.0.0"
+    "viem": "^2.31.6",
+    "wagmi": "^2.15.6"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.0.0",
