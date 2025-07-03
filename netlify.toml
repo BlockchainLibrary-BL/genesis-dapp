@@ -1,6 +1,8 @@
 [build]
-  command = "npm install && npm run build"
+  command = "npm install --legacy-peer-deps && npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "18"
+  NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID = "your-walletconnect-id"
+  NEXT_PUBLIC_GENESIS_BADGE_CONTRACT = "0x18cd3974357ffC524E4EE2D3e08B06eD3E0B7E1C"
