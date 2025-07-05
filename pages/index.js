@@ -14,7 +14,7 @@ import ClientOnly from './components/ClientOnly';
 import { ethers } from 'ethers';
 
 const GENESIS_BADGE_CONTRACT = {
-  address: process.env.NEXT_PUBLIC_GENESIS_BADGE_CONTRACT || '0x18cd3974357ffC524E4EE2D3e08B06eD3E0B7E1C',
+  address: process.env.NEXT_PUBLIC_GENESIS_BADGE_CONTRACT || '0x18Cd3974357FfC524E4Ee2D3e08b06eD3E0B7E1C',
   abi: [
     {
       "inputs": [{"internalType": "string", "name": "message", "type": "string"}],
