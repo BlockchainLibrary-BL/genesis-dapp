@@ -2,10 +2,14 @@
 import '../styles/globals.css'
 import { Inter } from 'next/font/google'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { WagmiProvider, createConfig } from 'wagmi'
+import { WagmiProvider } from 'wagmi'
 import { polygon } from 'wagmi/chains'
 import { http } from 'viem'
-import { getDefaultConfig, RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit'
+import {
+  getDefaultConfig,
+  RainbowKitProvider,
+  darkTheme,
+} from '@rainbow-me/rainbowkit'
 import '@rainbow-me/rainbowkit/styles.css'
 import { Toaster } from 'react-hot-toast'
 import { useState, useEffect } from 'react'
@@ -15,17 +19,15 @@ const inter = Inter({ subsets: ['latin'] })
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'default-project-id'
 
-const config = createConfig(
-  getDefaultConfig({
-    appName: 'Genesis Badge',
-    projectId: projectId,
-    chains: [polygon],
-    transports: {
-      [polygon.id]: http(),
-    },
-    ssr: true
-  })
-)
+const config = getDefaultConfig({
+  appName: 'Genesis Badge',
+  projectId,
+  chains: [polygon],
+  transports: {
+    [polygon.id]: http(),
+  },
+  ssr: true,
+})
 
 const queryClient = new QueryClient()
 
