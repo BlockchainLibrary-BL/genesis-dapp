@@ -17,19 +17,27 @@ import ClientOnly from './components/ClientOnly'
 
 const inter = Inter({ subsets: ['latin'] })
 
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'default-project-id'
+// Use a proper WalletConnect project ID - you should replace this with your actual project ID
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'c4f79cc821944d9680842e34466bfbd9'
 
 const config = getDefaultConfig({
   appName: 'Genesis Badge',
   projectId,
   chains: [polygon],
   transports: {
-    [polygon.id]: http(),
+    [polygon.id]: http('https://polygon-rpc.com'),
   },
   ssr: true,
 })
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+  },
+})
 
 export default function App({ Component, pageProps }) {
   const [mounted, setMounted] = useState(false)
@@ -37,6 +45,10 @@ export default function App({ Component, pageProps }) {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  if (!mounted) {
+    return null
+  }
 
   return (
     <div className={inter.className}>
@@ -48,10 +60,9 @@ export default function App({ Component, pageProps }) {
               accentColorForeground: 'white',
               borderRadius: 'medium',
             })}
+            chains={[polygon]}
           >
-            <ClientOnly>
-              {mounted && <Component {...pageProps} />}
-            </ClientOnly>
+            <Component {...pageProps} />
             <Toaster position="bottom-right" />
           </RainbowKitProvider>
         </QueryClientProvider>
