@@ -31,7 +31,7 @@
     "wagmi": "^2.15.6"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.0.0",
+    "@netlify/plugin-nextjs": "^5.12.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "autoprefixer": "^10.4.0",
